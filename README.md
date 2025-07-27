@@ -1,9 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js Authentication Example
+
+This is a [Next.js](https://nextjs.org) project demonstrating authentication, session management, and protected routes. This example was built as a demonstration for an article on building secure Next.js applications.
+
+## Features
+
+- 🔐 Session-based authentication
+- 🛡️ Protected dashboard route
+- 🍪 Cookie-based session management
+- 📱 Responsive UI with Tailwind CSS
+- 🔄 Server-side rendering with data fetching
+- ⚡ Built with Next.js 15 and TypeScript
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ installed
+- npm, yarn, pnpm, or bun package manager
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd my-nextjs-app
+```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
+```
+
+3. Set up environment variables:
+   - The project includes `.env.local` and `.dev.vars` files for development
+   - For production, set `API_URL` to your actual API endpoint
+
+4. Run the development server:
 ```bash
 npm run dev
 # or
@@ -14,23 +52,102 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Testing the Application
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Login Flow
+
+1. **Access the Login Page**:
+   - Navigate to [http://localhost:3000/login](http://localhost:3000/login)
+   - The form is pre-filled with demo credentials for easy testing
+
+2. **Demo Credentials**:
+   - **Email**: `demo@example.com`
+   - **Password**: `password`
+   - These are pre-filled in the form for convenience
+
+3. **Login Process**:
+   - Click "Sign in" button
+   - The app will simulate authentication and set a session cookie
+   - You'll be redirected to the dashboard automatically
+
+4. **Dashboard Access**:
+   - Visit [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
+   - You should see user information, stats, and last login time
+   - If not logged in, you'll be redirected to the login page
+
+### Testing Protected Routes
+
+- Try accessing `/dashboard` without logging in first
+- You should be automatically redirected to `/login`
+- After logging in, you should be able to access the dashboard
+
+### Session Management
+
+- The session is stored as a cookie named `session`
+- Session validation happens on each protected route access
+- To test logout, clear your browser cookies or use developer tools
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── auth/validate/     # Session validation endpoint
+│   │   └── users/[id]/        # User data API
+│   ├── dashboard/             # Protected dashboard page
+│   ├── login/                 # Login page
+│   ├── lib/
+│   │   └── auth.ts           # Authentication utilities
+│   └── types/
+│       ├── user.ts           # User type definitions
+│       └── session.ts        # Session type definitions
+```
+
+## API Endpoints
+
+- `GET /api/auth/validate` - Validates session tokens
+- `GET /api/users/[id]` - Fetches user data by ID
+
+## Environment Variables
+
+- `API_URL` - Base URL for API calls (defaults to `http://localhost:3000/api`)
+- `NEXTJS_ENV` - Environment identifier
+
+## Technologies Used
+
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Authentication**: Custom session-based auth
+- **Deployment**: Cloudflare Workers (configured)
+
+## Development Notes
+
+This is a demonstration project showing:
+- How to implement authentication in Next.js 15
+- Server-side session validation
+- Protected routes and redirects
+- TypeScript integration
+- Modern React patterns with Server Components
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+To learn more about the technologies used:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API
+- [Next.js Authentication](https://nextjs.org/docs/app/building-your-application/authentication) - authentication patterns
+- [TypeScript](https://www.typescriptlang.org/docs/) - TypeScript documentation
+- [Tailwind CSS](https://tailwindcss.com/docs) - utility-first CSS framework
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+This project is configured for deployment on Cloudflare Workers using OpenNext:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run deploy
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For other platforms, refer to the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
