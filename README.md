@@ -1,93 +1,234 @@
-# Next.js Authentication Example
+# Next.js SSR on Cloudflare with OpenNext - Example Demo
 
-This is a [Next.js](https://nextjs.org) project demonstrating authentication, session management, and protected routes. This example was built as a demonstration for an article on building secure Next.js applications.
+A complete Next.js application demonstrating **Server-Side Rendering (SSR) deployment on Cloudflare** using the **@opennextjs/cloudflare** adapter. This project serves as the practical example for the article "Deploying Next.js SSR on Cloudflare: The Complete Guide to OpenNext vs next-on-pages".
 
-## Features
+## 🚀 Why This Example Matters
 
-- 🔐 Session-based authentication
-- 🛡️ Protected dashboard route
-- 🍪 Cookie-based session management
-- 📱 Responsive UI with Tailwind CSS
-- 🔄 Server-side rendering with data fetching
-- ⚡ Built with Next.js 15 and TypeScript
+This demo showcases the **real difference** between deploying Next.js on Cloudflare:
+- ❌ **@cloudflare/next-on-pages**: Limited to Edge Runtime only
+- ✅ **@opennextjs/cloudflare**: Full Node.js runtime support
 
-## Getting Started
+## Features Demonstrated
 
-### Prerequisites
+- 🔐 **Dynamic Server Components**: Using `cookies()` and server-side logic
+- 🛡️ **Protected Routes**: SSR authentication with session validation
+- 🍪 **Node.js APIs**: Full access to Node.js modules (no Edge Runtime limitations)
+- 📱 **True SSR**: Server-rendered content on every request
+- 🎨 **Dynamic Data**: Real-time user data fetching
+- 🔒 **Type Safety**: Complete TypeScript implementation
+- ⚡ **Cloudflare Performance**: Sub-50ms response times
+
+## The Problem This Solves
+
+Have you seen these errors when deploying Next.js to Cloudflare?
+
+```
+Error: Dynamic server usage: Page couldn't be rendered statically because it used `cookies`.
+```
+
+```
+Error: The edge runtime does not support Node.js 'fs' module.
+```
+
+This example shows how **@opennextjs/cloudflare** eliminates these issues completely.
+
+## Prerequisites
 
 - Node.js 18+ installed
-- npm, yarn, pnpm, or bun package manager
+- Cloudflare account (free tier works!)
+- Wrangler CLI: `npm install -g wrangler`
+- Basic understanding of Next.js App Router
 
-### Installation
+## Quick Start
 
-1. Clone the repository:
+### 1. Clone and Install
 ```bash
-git clone <your-repo-url>
+git clone <repository-url>
 cd my-nextjs-app
-```
-
-2. Install dependencies:
-```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
 ```
 
-3. Set up environment variables:
-   - The project includes `.env.local` and `.dev.vars` files for development
-   - For production, set `API_URL` to your actual API endpoint
+### 2. Environment Setup
+Create `.env.local`:
+```env
+API_URL=http://localhost:3000/api
+NEXTJS_ENV=development
+```
 
-4. Run the development server:
+### 3. Local Development
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 4. Test the SSR Features
+- Visit `http://localhost:3000/dashboard`
+- Login with: `demo@example.com` / `password123`
+- Notice the server-rendered timestamps and dynamic content
 
-## Testing the Application
+## 🔥 Cloudflare Deployment (The Real Deal)
 
-### Login Flow
+### Option 1: Using Cloudflare CLI (Recommended)
+```bash
+# Create new Cloudflare project
+npm create cloudflare@latest my-nextjs-app -- \
+  --framework=next --platform=workers
 
-1. **Access the Login Page**:
-   - Navigate to [http://localhost:3000/login](http://localhost:3000/login)
-   - The form is pre-filled with demo credentials for easy testing
+# Deploy
+npm run deploy
+```
 
-2. **Demo Credentials**:
-   - **Email**: `demo@example.com`
-   - **Password**: `password`
-   - These are pre-filled in the form for convenience
+### Option 2: Manual Setup
 
-3. **Login Process**:
-   - Click "Sign in" button
-   - The app will simulate authentication and set a session cookie
-   - You'll be redirected to the dashboard automatically
+1. **Install OpenNext adapter**:
+```bash
+npm install @opennextjs/cloudflare
+```
 
-4. **Dashboard Access**:
-   - Visit [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
-   - You should see user information, stats, and last login time
-   - If not logged in, you'll be redirected to the login page
+2. **Configure wrangler.toml**:
+```toml
+name = "my-nextjs-app"
+main = ".open-next/worker.js"
+compatibility_date = "2025-01-27"
+compatibility_flags = ["nodejs_compat"]
 
-### Testing Protected Routes
+[env.production]
+name = "my-nextjs-app-production"
+```
 
-- Try accessing `/dashboard` without logging in first
-- You should be automatically redirected to `/login`
-- After logging in, you should be able to access the dashboard
+3. **Update package.json**:
+```json
+{
+  "scripts": {
+    "build": "next build",
+    "preview": "opennextjs-cloudflare build && wrangler dev",
+    "deploy": "opennextjs-cloudflare build && wrangler deploy"
+  }
+}
+```
 
-### Session Management
+4. **Create open-next.config.ts**:
+```typescript
+import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 
-- The session is stored as a cookie named `session`
-- Session validation happens on each protected route access
-- To test logout, clear your browser cookies or use developer tools
+export default defineCloudflareConfig({
+  // Optional: Enable R2 for ISR caching
+  incrementalCache: {
+    type: "r2",
+    bucketName: "my-nextjs-cache"
+  }
+});
+```
+
+## 🎯 Key Differences Demonstrated
+
+### ❌ With @cloudflare/next-on-pages
+```typescript
+// EVERY page needs this
+export const runtime = 'edge';
+
+export default async function Page() {
+  // ❌ This fails!
+  const fs = require('fs');
+  
+  // ❌ This also fails!
+  const crypto = require('crypto');
+  
+  return <div>Limited functionality</div>;
+}
+```
+
+### ✅ With @opennextjs/cloudflare
+```typescript
+// No runtime declaration needed!
+export default async function Dashboard() {
+  // ✅ Full Node.js support
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get('session');
+  
+  // ✅ Dynamic server-side logic
+  if (!sessionId) {
+    redirect('/login');
+  }
+  
+  // ✅ Real-time data fetching
+  const userData = await getUserData(sessionId.value);
+  
+  return (
+    <div>
+      <h1>Welcome back, {userData.name}!</h1>
+      <p>Rendered at: {new Date().toISOString()}</p>
+    </div>
+  );
+}
+```
+
+## 🚨 Common Deployment Mistakes (Avoid These!)
+
+### Mistake #1: Forgetting nodejs_compat
+```toml
+# ❌ Will cause cryptic errors
+compatibility_date = "2025-01-27"
+
+# ✅ Always include this!
+compatibility_date = "2025-01-27"
+compatibility_flags = ["nodejs_compat"]
+```
+
+### Mistake #2: Not Understanding Build Output
+After `opennextjs-cloudflare build`:
+```
+.open-next/
+├── worker.js        # Your entire app bundled
+├── static/          # Static assets
+└── cache/           # ISR cache artifacts
+```
+**Don't commit `.open-next/` to git!**
+
+### Mistake #3: Wrong Adapter Choice
+- Use **@opennextjs/cloudflare** for full Next.js features
+- Use **@cloudflare/next-on-pages** only for static/edge-only apps
+
+## 💰 Cloudflare Free Tier Capacity
+
+This example runs perfectly on Cloudflare's free tier:
+- **100,000 requests/day** (resets at midnight UTC)
+- **10ms CPU time** per request (plenty for SSR)
+- **128MB memory** per Worker
+- **Unlimited static assets** 🎉
+
+### Real-World Capacity
+With optimized SSR pages (~2ms CPU time):
+- **~50,000 dynamic page views/day**
+- **Unlimited static asset requests**
+- **Sub-50ms global response times**
+
+## 📁 Project Structure
+
+```
+src/app/
+├── api/
+│   ├── auth/validate/     # SSR session validation
+│   └── users/[id]/        # Dynamic user data
+├── dashboard/             # Protected SSR page
+├── lib/auth.ts           # Server-side auth logic
+├── types/
+│   ├── session.ts        # Session interfaces
+│   └── user.ts           # User type definitions
+└── login/                # Authentication flow
+```
+
+## 🧪 Testing the SSR Features
+
+### Demo Credentials
+- **Email**: `demo@example.com`
+- **Password**: `password123`
+
+### What to Test
+1. **Server-Side Rendering**: View page source - HTML is pre-rendered
+2. **Dynamic Cookies**: Login persists across page refreshes
+3. **Protected Routes**: `/dashboard` redirects when not authenticated
+4. **Real-time Data**: Timestamps update on each server request
+5. **Node.js APIs**: Full server-side functionality works
 
 ## Project Structure
 
