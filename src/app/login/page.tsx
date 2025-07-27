@@ -7,17 +7,35 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock login - in production, call your auth API
-    document.cookie = 'session=mock-session-token; path=/';
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    router.push('/dashboard');
+      const data = await response.json() as { success?: boolean; redirectTo?: string; error?: string };
+
+       if (response.ok && data.success) {
+         router.push(data.redirectTo || '/dashboard');
+       } else {
+         alert(data.error || 'Login failed');
+       }
+     } catch {
+       alert('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -33,6 +51,7 @@ export default function LoginPage() {
             <div>
               <input
                 type="email"
+                name="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
@@ -42,6 +61,7 @@ export default function LoginPage() {
             <div>
               <input
                 type="password"
+                name="password"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
